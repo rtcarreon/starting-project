@@ -1,0 +1,425 @@
+{\rtf1\ansi\ansicpg1252\deff0\deflang13321{\fonttbl{\f0\fnil\fcharset0 Calibri;}}
+{\*\generator Msftedit 5.41.21.2510;}\viewkind4\uc1\pard\sa200\sl276\slmult1\lang9\f0\fs22 Query DSL - Queries\par
+\par
+elasticsearch provides a full Java query dsl in a similar manner to the REST \{ref\}/query-dsl.html[Query DSL]. The factory for query builders is QueryBuilders. Once your query is ready, you can use the Search API.\par
+\par
+See also how to build Filters\par
+\par
+To use QueryBuilders or FilterBuilders just import them in your class:\par
+\par
+import static org.elasticsearch.index.query.QueryBuilders.*;\par
+import static org.elasticsearch.index.query.FilterBuilders.*;\par
+Note that you can easily print (aka debug) JSON generated queries using toString() method on QueryBuilder object.\par
+\par
+The QueryBuilder can then be used with any API that accepts a query, such as count and search.\par
+\par
+Match Query\par
+\par
+See \{ref\}/query-dsl-match-query.html[Match Query]\par
+\par
+QueryBuilder qb = matchQuery(\par
+    "name",                  (1)\par
+    "kimchy elasticsearch"   (2)\par
+);\par
+field\par
+\par
+text\par
+\par
+MultiMatch Query\par
+\par
+See \{ref\}/query-dsl-multi-match-query.html[MultiMatch Query]\par
+\par
+QueryBuilder qb = multiMatchQuery(\par
+    "kimchy elasticsearch", (1)\par
+    "user", "message"       (2)\par
+);\par
+text\par
+\par
+fields\par
+\par
+Boolean Query\par
+See \{ref\}/query-dsl-bool-query.html[Boolean Query]\par
+\par
+QueryBuilder qb = boolQuery()\par
+    .must(termQuery("content", "test1"))    (1)\par
+    .must(termQuery("content", "test4"))    (1)\par
+    .mustNot(termQuery("content", "test2")) (2)\par
+    .should(termQuery("content", "test3")); (3)\par
+must query\par
+\par
+must not query\par
+\par
+should query\par
+\par
+Boosting Query\par
+\par
+See \{ref\}/query-dsl-boosting-query.html[Boosting Query]\par
+\par
+QueryBuilder qb = boostingQuery()\par
+    .positive(termQuery("name","kimchy"))   (1)\par
+    .negative(termQuery("name","dadoonet")) (2)\par
+    .negativeBoost(0.2f);                   (3)\par
+query that will promote documents\par
+query that will demote documents\par
+negative boost\par
+IDs Query\par
+\par
+See \{ref\}/query-dsl-ids-query.html[IDs Query]\par
+\par
+QueryBuilder qb = idsQuery().ids("1", "2"); (1)\par
+document ids\par
+\par
+Constant Score Query\par
+See \{ref\}/query-dsl-constant-score-query.html[Constant Score Query]\par
+\par
+QueryBuilder qb = constantScoreQuery(\par
+        termFilter("name","kimchy")     (1)\par
+    )\par
+    .boost(2.0f);                       (2)\par
+you can use a filter\par
+filter score\par
+QueryBuilder qb = constantScoreQuery(\par
+        termQuery("name","kimchy")      (1)\par
+    )\par
+    .boost(2.0f);                       (2)\par
+you can use a query\par
+query score\par
+Disjunction Max Query\par
+\par
+See \{ref\}/query-dsl-dis-max-query.html[Disjunction Max Query]\par
+\par
+QueryBuilder qb = disMaxQuery()\par
+    .add(termQuery("name","kimchy"))        (1)\par
+    .add(termQuery("name","elasticsearch")) (2)\par
+    .boost(1.2f)                            (3)\par
+    .tieBreaker(0.7f);                      (4)\par
+add your queries\par
+add your queries\par
+\par
+boost factor\par
+tie breaker\par
+Fuzzy Like This (Field) Query (flt and flt_field)\par
+See: * \{ref\}/query-dsl-flt-query.html[Fuzzy Like This Query] * \{ref\}/query-dsl-flt-field-query.html[Fuzzy Like This Field Query]\par
+\par
+QueryBuilder qb = fuzzyLikeThisQuery("name.first", "name.last") (1)\par
+    .likeText("text like this one")                             (2)\par
+    .maxQueryTerms(12);                                         (3)\par
+fields\par
+text\par
+max num of Terms in generated queries\par
+QueryBuilder qb = fuzzyLikeThisFieldQuery("name.first")         (1)\par
+                .likeText("text like this one")                 (2)\par
+                .maxQueryTerms(12);                             (3)\par
+field\par
+\par
+text\par
+\par
+max num of Terms in generated queries\par
+\par
+FuzzyQuery\par
+See \{ref\}/query-dsl-fuzzy-query.html[Fuzzy Query]\par
+\par
+QueryBuilder qb = fuzzyQuery(\par
+    "name",     (1)\par
+    "kimzhy"    (2)\par
+);\par
+field\par
+text\par
+\par
+Has Child / Has Parent\par
+\par
+See: * \{ref\}/query-dsl-has-child-query.html[Has Child Query] * \{ref\}/query-dsl-has-parent-query.html[Has Parent]\par
+\par
+// Has Child\par
+QueryBuilder qb = hasChildQuery(\par
+    "blog_tag",                     (1)\par
+    termQuery("tag","something")    (2)\par
+);\par
+child type to query against\par
+\par
+query (could be also a filter)\par
+\par
+QueryBuilder qb = hasParentQuery(\par
+    "blog",                         (1)\par
+    termQuery("tag","something")    (2)\par
+);\par
+parent type to query against\par
+\par
+query (could be also a filter)\par
+\par
+MatchAll Query\par
+\par
+See \{ref\}/query-dsl-match-all-query.html[Match All Query]\par
+\par
+QueryBuilder qb = matchAllQuery();\par
+More Like This (Field) Query (mlt and mlt_field)\par
+\par
+See: * \{ref\}/query-dsl-mlt-query.html[More Like This Query]\par
+\par
+// mlt Query\par
+QueryBuilder qb = moreLikeThisQuery("name.first", "name.last")  (1)\par
+    .likeText("text like this one")                             (2)\par
+    .minTermFreq(1)                                             (3)\par
+    .maxQueryTerms(12);                                         (4)\par
+fields\par
+\par
+text\par
+\par
+ignore threshold\par
+\par
+max num of Terms in generated queries\par
+\par
+Prefix Query\par
+See \{ref\}/query-dsl-prefix-query.html[Prefix Query]\par
+\par
+QueryBuilder qb = prefixQuery(\par
+    "brand",    (1)\par
+    "heine"     (2)\par
+);\par
+field\par
+prefix\par
+\par
+QueryString Query\par
+See \{ref\}/query-dsl-query-string-query.html[QueryString Query]\par
+\par
+QueryBuilder qb = queryStringQuery("+kimchy -elasticsearch");    (1)\par
+text\par
+\par
+Range Query\par
+See \{ref\}/query-dsl-range-query.html[Range Query]\par
+\par
+QueryBuilder qb = rangeQuery("price")   (1)\par
+    .from(5)                            (2)\par
+    .to(10)                             (3)\par
+    .includeLower(true)                 (4)\par
+    .includeUpper(false);               (5)\par
+field\par
+from\par
+\par
+to\par
+\par
+include lower value means that from is gt when false or gte when true\par
+\par
+include upper value means that to is lt when false or lte when true\par
+\par
+Span Queries (first, near, not, or, term)\par
+\par
+See: * \{ref\}/query-dsl-span-term-query.html[Span Term Query] * \{ref\}/query-dsl-span-first-query.html[Span First Query] * \{ref\}/query-dsl-span-near-query.html[Span Near Query] * \{ref\}/query-dsl-span-not-query.html[Span Not Query] * \{ref\}/query-dsl-span-or-query.html[Span Or Query]\par
+\par
+// Span Term\par
+QueryBuilder qb = spanTermQuery(\par
+    "user",                                     (1)\par
+    "kimchy"                                    (2)\par
+);\par
+field\par
+\par
+value\par
+\par
+// Span First\par
+QueryBuilder qb = spanFirstQuery(\par
+    spanTermQuery("user", "kimchy"),            (1)\par
+    3                                           (2)\par
+);\par
+query\par
+\par
+max end position\par
+\par
+// Span Near\par
+QueryBuilder qb = spanNearQuery()\par
+    .clause(spanTermQuery("field","value1"))    (1)\par
+    .clause(spanTermQuery("field","value2"))    (1)\par
+    .clause(spanTermQuery("field","value3"))    (1)\par
+    .slop(12)                                   (2)\par
+    .inOrder(false)                             (3)\par
+    .collectPayloads(false);                    (4)\par
+span term queries\par
+\par
+slop factor: the maximum number of intervening unmatched positions\par
+\par
+whether matches are required to be in-order\par
+\par
+collect payloads or not\par
+\par
+// Span Not\par
+QueryBuilder qb = spanNotQuery()\par
+    .include(spanTermQuery("field","value1"))   (1)\par
+    .exclude(spanTermQuery("field","value2"));  (2)\par
+span query whose matches are filtered\par
+\par
+span query whose matches must not overlap those returned\par
+\par
+// Span Or\par
+QueryBuilder qb = spanOrQuery()\par
+    .clause(spanTermQuery("field","value1"))    (1)\par
+    .clause(spanTermQuery("field","value2"))    (1)\par
+    .clause(spanTermQuery("field","value3"));   (1)\par
+span term queries\par
+\par
+Term Query\par
+\par
+See \{ref\}/query-dsl-term-query.html[Term Query]\par
+\par
+QueryBuilder qb = termQuery(\par
+    "name",     (1)\par
+    "kimchy");  (2)\par
+field\par
+\par
+value\par
+\par
+Terms Query\par
+\par
+See \{ref\}/query-dsl-terms-query.html[Terms Query]\par
+\par
+QueryBuilder qb = termsQuery("tags",    (1)\par
+    "blue", "pill")                 (2)\par
+    .minimumMatch(1);               (3)\par
+field\par
+\par
+values\par
+\par
+how many terms must match at least\par
+\par
+Top Children Query\par
+\par
+See \{ref\}/query-dsl-top-children-query.html[Top Children Query]\par
+\par
+QueryBuilder qb = topChildrenQuery(\par
+        "blog_tag",                   (1)\par
+        termQuery("tag", "something") (2)\par
+    )\par
+    .score("max")                     (3)\par
+    .factor(5)                        (4)\par
+    .incrementalFactor(2);            (5)\par
+field\par
+\par
+query\par
+\par
+max, sum or avg\par
+\par
+how many hits are asked for in the first child query run (defaults to 5)\par
+\par
+if not enough parents are found, and there are still more child docs to query, then the child search hits are expanded by multiplying by the incremental_factor (defaults to 2).\par
+\par
+Wildcard Query\par
+\par
+See \{ref\}/query-dsl-wildcard-query.html[Wildcard Query]\par
+\par
+QueryBuilder qb = wildcardQuery("user", "k?mc*");\par
+Nested Query\par
+\par
+See \{ref\}/query-dsl-nested-query.html[Nested Query]\par
+\par
+QueryBuilder qb = nestedQuery(\par
+        "obj1",               (1)\par
+        boolQuery()           (2)\par
+                .must(matchQuery("obj1.name", "blue"))\par
+                .must(rangeQuery("obj1.count").gt(5))\par
+    )\par
+    .scoreMode("avg");        (3)\par
+path to nested document\par
+\par
+your query. Any fields referenced inside the query must use the complete path (fully qualified).\par
+\par
+score mode could be max, total, avg (default) or none\par
+\par
+Indices Query\par
+\par
+See \{ref\}/query-dsl-indices-query.html[Indices Query]\par
+\par
+// Using another query when no match for the main one\par
+QueryBuilder qb = indicesQuery(\par
+        termQuery("tag", "wow"),            (1)\par
+        "index1", "index2"                  (2)\par
+    )\par
+    .noMatchQuery(termQuery("tag", "kow")); (3)\par
+query to be executed on selected indices\par
+\par
+selected indices\par
+\par
+query to be executed on non matching indices\par
+\par
+// Using all (match all) or none (match no documents)\par
+QueryBuilder qb = indicesQuery(\par
+        termQuery("tag", "wow"),            (1)\par
+        "index1", "index2"                  (2)\par
+    )\par
+    .noMatchQuery("all");                   (3)\par
+query to be executed on selected indices\par
+\par
+selected indices\par
+\par
+none (to match no documents), and all (to match all documents). Defaults to all.\par
+\par
+GeoShape Query\par
+\par
+See \{ref\}/query-dsl-geo-shape-query.html[GeoShape Query]\par
+\par
+Note: the geo_shape type uses Spatial4J and JTS, both of which are optional dependencies. Consequently you must add Spatial4J and JTS to your classpath in order to use this type:\par
+\par
+<dependency>\par
+    <groupId>com.spatial4j</groupId>\par
+    <artifactId>spatial4j</artifactId>\par
+    <version>0.4.1</version>                        (1)\par
+</dependency>\par
+\par
+<dependency>\par
+    <groupId>com.vividsolutions</groupId>\par
+    <artifactId>jts</artifactId>\par
+    <version>1.13</version>                         (2)\par
+    <exclusions>\par
+        <exclusion>\par
+            <groupId>xerces</groupId>\par
+            <artifactId>xercesImpl</artifactId>\par
+        </exclusion>\par
+    </exclusions>\par
+</dependency>\par
+check for updates in Maven Central\par
+\par
+check for updates in Maven Central\par
+\par
+// Import Spatial4J shapes\par
+import com.spatial4j.core.context.SpatialContext;\par
+import com.spatial4j.core.shape.Shape;\par
+import com.spatial4j.core.shape.impl.RectangleImpl;\par
+\par
+// Also import ShapeRelation\par
+import org.elasticsearch.common.geo.ShapeRelation;\par
+// Shape within another\par
+QueryBuilder qb = geoShapeQuery(\par
+        "location",                                     (1)\par
+        new RectangleImpl(0,10,0,10,SpatialContext.GEO) (2)\par
+    )\par
+    .relation(ShapeRelation.WITHIN);                    (3)\par
+field\par
+\par
+shape\par
+\par
+relation\par
+\par
+// Intersect shapes\par
+QueryBuilder qb = geoShapeQuery(\par
+        "location",                                     (1)\par
+        new PointImpl(0, 0, SpatialContext.GEO)         (2)\par
+    )\par
+    .relation(ShapeRelation.INTERSECTS);                (3)\par
+field\par
+\par
+shape\par
+\par
+relation\par
+\par
+// Using pre-indexed shapes\par
+QueryBuilder qb = geoShapeQuery(\par
+        "location",                                     (1)\par
+        "New Zealand",                                  (2)\par
+        "countries")                                    (3)\par
+    .relation(ShapeRelation.DISJOINT);                  (4)\par
+field\par
+\par
+indexed shape id\par
+\par
+index type of the indexed shapes\par
+\par
+relation\par
+}
+ 

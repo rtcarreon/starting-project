@@ -1,0 +1,9 @@
+# This config is syntax-sensitive, always add space after colons
+cluster.name: romer_es
+node.name: "traxex"
+index.number_of_shards: 1
+index.number_of_replicas: 0
+bootstrap.mlockall: true
+gateway.expected_nodes: 1
+discovery.zen.ping.unicast.hosts: ["localhost:9300"]
+script.disable_dynamic: false
