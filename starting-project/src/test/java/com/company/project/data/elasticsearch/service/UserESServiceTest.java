@@ -16,10 +16,13 @@
 
 package com.company.project.data.elasticsearch.service;
 
+import com.company.project.data.elasticsearch.entities.Car;
+import com.company.project.data.elasticsearch.entities.User;
 import com.company.project.data.elasticsearch.entities.ChildEntity;
 import com.company.project.data.elasticsearch.entities.ParentEntity;
 import com.company.project.data.elasticsearch.entities.User;
 import com.company.project.data.elasticsearch.repositories.UserRepository;
+import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -29,6 +32,8 @@ import java.util.Map;
 import java.util.UUID;
 import javax.annotation.Resource;
 import org.apache.commons.lang.RandomStringUtils;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.index.query.FilterBuilders;
 import static org.elasticsearch.index.query.FilterBuilders.boolFilter;
 import static org.elasticsearch.index.query.FilterBuilders.existsFilter;
@@ -42,7 +47,12 @@ import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
 import static org.elasticsearch.index.query.QueryBuilders.prefixQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.elasticsearch.index.query.QueryBuilders.topChildrenQuery;
+import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import static org.elasticsearch.search.aggregations.AggregationBuilders.terms;
+import org.elasticsearch.search.aggregations.Aggregations;
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNull.notNullValue;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
@@ -58,6 +68,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.FacetedPage;
+import org.springframework.data.elasticsearch.core.ResultsExtractor;
 import org.springframework.data.elasticsearch.core.facet.request.TermFacetRequestBuilder;
 import org.springframework.data.elasticsearch.core.facet.result.Term;
 import org.springframework.data.elasticsearch.core.facet.result.TermResult;
@@ -632,7 +643,7 @@ public class UserESServiceTest {
         );
     }
     
-    @Test
+    //@Test
     public void testNestedQueries() {
         elasticsearchTemplate.deleteIndex(ChildEntity.class);
         elasticsearchTemplate.deleteIndex(ParentEntity.class);
@@ -722,5 +733,155 @@ public class UserESServiceTest {
         assertEquals(1, parents.size());
         assertEquals(parent2.getId(), parents.get(0).getId());
 
+    }
+    
+    @Test
+    public void testAggregation() {
+        System.out.println("testAggregation");
+        
+        elasticsearchTemplate.deleteIndex(Car.class);
+        elasticsearchTemplate.createIndex("car_idx");
+        elasticsearchTemplate.putMapping(Car.class);
+        elasticsearchTemplate.refresh(Car.class, true);
+        
+        boolean typeExists = elasticsearchTemplate.typeExists("car_idx", "car_type");
+        
+        assertTrue(typeExists);
+       /**
+         * Single index example
+         */
+        String id = "1";
+        Car car = new Car();
+        car.setId(id);
+        car.setColor("red");
+        car.setPrice(10000);
+        car.setMake("honda");
+        car.setSold("2014-10-28");
+        IndexQuery userIndex = new IndexQuery();
+        userIndex.setId(id);
+        userIndex.setObject(car);
+        userIndex.setIndexName("car_idx");
+        userIndex.setType("car_type");
+        elasticsearchTemplate.index(userIndex);
+        
+        /**
+         * Bulk index example
+         */
+        id = "2";
+        car = new Car();
+        car.setId(id);
+        car.setColor("red");
+        car.setPrice(20000);
+        car.setMake("honda");
+        car.setSold("2014-11-05");
+        IndexQuery indexQuery2 = new IndexQueryBuilder().withId(car.getId())
+            .withIndexName("car_idx")
+            .withObject(car)
+            .build();
+        
+        id = "3";
+        car = new Car();
+        car.setId(id);
+        car.setColor("green");
+        car.setPrice(30000);
+        car.setMake("ford");
+        car.setSold("2014-05-18");
+        IndexQuery indexQuery3 = new IndexQueryBuilder().withId(car.getId())
+            .withIndexName("car_idx")
+            .withObject(car)
+            .build();
+        
+        id = "4";
+        car = new Car();
+        car.setId(id);
+        car.setColor("blue");
+        car.setPrice(15000);
+        car.setMake("toyota");
+        car.setSold("2014-07-02");
+        IndexQuery indexQuery4 = new IndexQueryBuilder().withId(car.getId())
+            .withIndexName("car_idx")
+            .withObject(car)
+            .build();
+        
+        id = "5";
+        car = new Car();
+        car.setId(id);
+        car.setColor("green");
+        car.setPrice(12000);
+        car.setMake("toyota");
+        car.setSold("2014-08-19");
+        IndexQuery indexQuery5 = new IndexQueryBuilder().withId(car.getId())
+            .withIndexName("car_idx")
+            .withObject(car)
+            .build();
+        
+        id = "6";
+        car = new Car();
+        car.setId(id);
+        car.setColor("red");
+        car.setPrice(20000);
+        car.setMake("honda");
+        car.setSold("2014-11-05");
+        IndexQuery indexQuery6 = new IndexQueryBuilder().withId(car.getId())
+            .withIndexName("car_idx")
+            .withObject(car)
+            .build();
+        
+        id = "7";
+        car = new Car();
+        car.setId(id);
+        car.setColor("red");
+        car.setPrice(80000);
+        car.setMake("bmw");
+        car.setSold("2014-01-01");
+        IndexQuery indexQuery7 = new IndexQueryBuilder().withId(car.getId())
+            .withIndexName("car_idx")
+            .withObject(car)
+            .build();
+        
+        id = "7";
+        car = new Car();
+        car.setId(id);
+        car.setColor("blue");
+        car.setPrice(25000);
+        car.setMake("ford");
+        car.setSold("2014-02-12");
+        IndexQuery indexQuery8 = new IndexQueryBuilder().withId(car.getId())
+            .withIndexName("car_idx")
+            .withObject(car)
+            .build();
+        elasticsearchTemplate.bulkIndex(Arrays.asList(
+                indexQuery2,
+                indexQuery3,
+                indexQuery4,
+                indexQuery5,
+                indexQuery6,
+                indexQuery7,
+                indexQuery8));
+        // alternative to index
+        //userRepository.save(Arrays.asList(car));
+        
+        elasticsearchTemplate.refresh(Car.class, true);
+        
+        
+        SearchQuery searchQuery = new NativeSearchQueryBuilder()
+                .withQuery(matchAllQuery())
+                .withSearchType(SearchType.COUNT)
+                .withIndices("car_idx").withTypes("car_type")
+                .addAggregation(AggregationBuilders.terms("colors").field("color"))
+                .build();
+        Aggregations aggregations = elasticsearchTemplate.query(searchQuery, new ResultsExtractor<Aggregations>() {
+            @Override
+            public Aggregations extract(SearchResponse response) {
+                return response.getAggregations();
+            }
+        });
+        assertThat(aggregations, is(notNullValue()));
+        assertThat(aggregations.asMap().get("colors"), is(notNullValue()));
+        Gson gson = new Gson();
+        for (Aggregation agg : aggregations.asList()) {
+            System.out.println("Aggregation json string:" + gson.toJson(agg));
+        }
+        
     }
 }

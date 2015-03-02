@@ -56,4 +56,11 @@ public interface UserRepository extends ElasticsearchRepository<User, String> {
     Page<User> findByNameContaining(String contains, Pageable pageable);
     // {"bool" : {"must" : {"field" : {"name" : {"query" : "*?","analyze_wildcard" : true}}}}}
     Page<User> findByNameEndingWith(String ending, Pageable pageable);
+    
+    
+    
+    //@Query("{\"bool\" : {\"must\" : {\"term\" : {\"message\" : \"?0\"}}}}")
+    //Page<User> findByMessage(String message, Pageable pageable);
+    //@Query("{\"bool\" : {\"must\" : {\"term\" : {\"message\" : \"?0\"}}}}")
+    //List<User> findByMessage(String message);
 }
