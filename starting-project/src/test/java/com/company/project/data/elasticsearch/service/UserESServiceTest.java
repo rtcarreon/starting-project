@@ -592,6 +592,7 @@ public class UserESServiceTest {
         
         
         // ref: https://github.com/elasticsearch/elasticsearch/blob/master/docs/java-api/query-dsl-queries.asciidoc#boolean-query
+        // http://www.elasticsearch.org/guide/en/elasticsearch/client/java-api/current/query-dsl-queries.html
         // Boolean Query
         builder = boolQuery()
             .must(termQuery("content", "test1"))            // field name, keyword
@@ -717,18 +718,52 @@ public class UserESServiceTest {
         elasticsearchTemplate.refresh(ParentEntity.class, true);
         elasticsearchTemplate.refresh(ChildEntity.class, true);
         
-        // find parents of the child
+        // which works on children documents and returns parents. find parents of the child
         QueryBuilder query = hasChildQuery(ParentEntity.CHILD_TYPE, QueryBuilders.termQuery("name", child1.getName().toLowerCase()));
         List<ParentEntity> parents = elasticsearchTemplate.queryForList(new NativeSearchQuery(query), ParentEntity.class);
+        // expecting only the first parent as result
+        assertEquals(1, parents.size());
+        assertEquals(parent1.getId(), parents.get(0).getId());
+
+        // find parent of the child
+        query = QueryBuilders.hasChildQuery(ParentEntity.CHILD_TYPE, QueryBuilders.termQuery("name", child3.getName().toLowerCase()));
+        parents = elasticsearchTemplate.queryForList(new NativeSearchQuery(query), ParentEntity.class);
+        assertEquals(1, parents.size());
+        assertEquals(parent3.getId(), parents.get(0).getId());
         
-        // we're expecting only the first parent as result
+        // find parent of the child with minimum of 2 children and/or max of 4 children
+        query = QueryBuilders.hasChildQuery(ParentEntity.CHILD_TYPE, QueryBuilders.termQuery("name", child1.getName().toLowerCase()))
+                .minChildren(2)
+                .maxChildren(4);
+        parents = elasticsearchTemplate.queryForList(new NativeSearchQuery(query), ParentEntity.class);
+        assertEquals(0, parents.size());
+
+        // How many hits are asked for in the first child query run is controlled using the factor parameter (defaults to 5).
+        // For example, when asking for 10 parent docs (with from set to 0), then the child query will execute with 50 hits expected.
+        // If not enough parents are found (in our example 10), and there are still more child docs to query, then the child search hits are expanded by multiplying by the incremental_factor (defaults to 2).
+        query = QueryBuilders.topChildrenQuery(ParentEntity.CHILD_TYPE, QueryBuilders.termQuery("name", child1.getName().toLowerCase()))
+                .score("max")
+                .factor(5)
+                .incrementalFactor(2);
+        parents = elasticsearchTemplate.queryForList(new NativeSearchQuery(query), ParentEntity.class);
         assertEquals(1, parents.size());
         assertEquals(parent1.getId(), parents.get(0).getId());
         
-        // find all parents that have the first child using topChildren Query
+        // which works on parent documents and return children. return child entity
+        query = QueryBuilders.hasParentQuery(ParentEntity.PARENT_TYPE, QueryBuilders.termQuery("name", child3.getName().toLowerCase()));
+        List<ChildEntity> children = elasticsearchTemplate.queryForList(new NativeSearchQuery(query), ChildEntity.class);
+        assertEquals(1, children.size());
+        assertEquals(child3.getId(), children.get(0).getId());
+        
+        // return child entity
+        query = QueryBuilders.hasParentQuery(ParentEntity.PARENT_TYPE, QueryBuilders.termQuery("name", child1.getName().toLowerCase()));
+        children = elasticsearchTemplate.queryForList(new NativeSearchQuery(query), ChildEntity.class);
+        assertEquals(1, children.size());
+        assertEquals(child1.getId(), children.get(0).getId());
+
+        // which performs a query and returns the top X matching children. find all parents that have the first child using topChildren Query
         query = topChildrenQuery(ParentEntity.CHILD_TYPE, QueryBuilders.termQuery("name", child2.getName().toLowerCase()));
         parents = elasticsearchTemplate.queryForList(new NativeSearchQuery(query), ParentEntity.class);
-
         // we're expecting only the first parent as result
         assertEquals(1, parents.size());
         assertEquals(parent2.getId(), parents.get(0).getId());
@@ -839,7 +874,7 @@ public class UserESServiceTest {
             .withObject(car)
             .build();
         
-        id = "7";
+        id = "8";
         car = new Car();
         car.setId(id);
         car.setColor("blue");
@@ -864,11 +899,19 @@ public class UserESServiceTest {
         elasticsearchTemplate.refresh(Car.class, true);
         
         
+        // 1   honda   red   10000   2014-10-28
+        // 2   honda   red   20000   2014-11-05
+        // 3   ford    green 30000   2014-05-18
+        // 4   toyota  blue  15000   2014-07-02
+        // 5   toyota  green 12000   2014-08-19
+        // 6   honda   red   20000   2014-11-05
+        // 7   bmw     red   80000   2014-01-01
+        // 8   ford    blue  25000   2014-02-12
         SearchQuery searchQuery = new NativeSearchQueryBuilder()
                 .withQuery(matchAllQuery())
                 .withSearchType(SearchType.COUNT)
                 .withIndices("car_idx").withTypes("car_type")
-                .addAggregation(AggregationBuilders.terms("colors").field("color"))
+                .addAggregation(AggregationBuilders.terms("colors").field("color").subAggregation(AggregationBuilders.avg("avg_price").field("price")))
                 .build();
         Aggregations aggregations = elasticsearchTemplate.query(searchQuery, new ResultsExtractor<Aggregations>() {
             @Override
@@ -880,8 +923,17 @@ public class UserESServiceTest {
         assertThat(aggregations.asMap().get("colors"), is(notNullValue()));
         Gson gson = new Gson();
         for (Aggregation agg : aggregations.asList()) {
+            // {"order":{"id":1,"key":"_count","asc":false,"comparator":{}},"requiredSize":10,"minDocCount":1,
+            // "buckets":[{"termBytes":{"bytes":[114,101,100],"offset":0,"length":3},"bucketOrd":0,"docCount":3,
+            // "aggregations":{"aggregations":[{"sum":50000.0,"count":3,"name":"avg_price"}]}},{"termBytes":{"bytes":[98,108,117,101],"offset":0,"length":4},"bucketOrd":0,"docCount":2,
+            //blue  // "aggregations":{"aggregations":[{"sum":40000.0,"count":2,"name":"avg_price"}]}},{"termBytes":{"bytes":[103,114,101,101,110],"offset":0,"length":5},"bucketOrd":0,"docCount":2,
+            //green  // "aggregations":{"aggregations":[{"sum":42000.0,"count":2,"name":"avg_price"}]}}],"name":"colors"}
             System.out.println("Aggregation json string:" + gson.toJson(agg));
+            
         }
+        
+        
+        
         
     }
 }
