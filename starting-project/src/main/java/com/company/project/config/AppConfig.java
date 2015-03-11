@@ -121,12 +121,14 @@ public class AppConfig extends WebMvcConfigurerAdapter {
         registry.addViewController("/login").setViewName("login");
         registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
         
+        registry.addViewController("/register").setViewName("register");
+        registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        
         registry.addViewController("/processing").setViewName("processing");
         registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
         
         registry.addViewController("/403").setViewName("403");
         registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
-        
         
         registry.addViewController("/protected").setViewName("protected");
         registry.setOrder(Ordered.HIGHEST_PRECEDENCE);

@@ -56,7 +56,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public void configure(WebSecurity web) throws Exception {
         web
             .ignoring()
-                .antMatchers("/resources/**", "/css/**", "/img/**", "/js/**");
+                .antMatchers("/resources/**", "/css/**", "/img/**", "/js/**", "/fonts/**", "/less/**", "/pages/**");
         
     }
 
@@ -111,12 +111,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             //.anyRequest().authenticated()         // every request requires the user to be authenticated
                 //.and()
             
-            .antMatchers("/js/**", "/css/**", "/img/**").permitAll()
+            .antMatchers("/resources/**", "/css/**", "/img/**", "/js/**", "/fonts/**", "/less/**", "/pages/**").permitAll()
             .antMatchers(
                     "/login",
                     "/processLogin",
                     "/resources/**",
-                    "/signup").permitAll()
+                    "/register").permitAll()
             .antMatchers("/admin/**").access("hasRole('ROLE_ADMIN')")                           
             .antMatchers("/dba/**").access("hasRole('ROLE_ADMIN') or hasRole('ROLE_DBA')")
             .antMatchers("/confidential/**").access("hasRole('SYS_ADMIN')")

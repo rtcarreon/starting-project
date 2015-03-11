@@ -5,8 +5,9 @@ USE `test_db` ;
 
 DROP TABLE IF EXISTS `User_T` ;
 CREATE  TABLE User_T (
-  username VARCHAR(45) NOT NULL ,
-  password VARCHAR(45) NOT NULL ,
+  username VARCHAR(45) NOT NULL,
+  password VARCHAR(45) NOT NULL,
+  role_id TINYINT NOT NULL DEFAULT 3 COMMENT '1=SYS_ADMIN, 2=ADMIN, 3=USER',
   active TINYINT NOT NULL DEFAULT 0 COMMENT '0=inactive, 1=active, 2=inactive by reson 1, 3=inactive by reason 2',
   PRIMARY KEY (username))
 ENGINE = InnoDB;
@@ -20,7 +21,7 @@ ENGINE = InnoDB;
 
 DROP TABLE IF EXISTS `Role_T` ;
 CREATE  TABLE Role_T (
-  id BIGINT NOT NULL AUTO_INCREMENT,
+  id TINYINT NOT NULL AUTO_INCREMENT,
   role VARCHAR(45) NOT NULL ,
   PRIMARY KEY (id))
 ENGINE = InnoDB;
@@ -51,7 +52,7 @@ CREATE TABLE SocialAccount_T (
     type_id TINYINT NOT NULL COMMENT '1=FACEBOOK, 2=GOOGLE_PLUS, 3=LINKEDIN, 4=TWITTER, 5=WORDPRESS',
     user_id BIGINT NOT NULL,
     account_id CHAR(50) COMMENT 'social account id',
-    social_access BIGINT NOT NULL,
+    social_access_id BIGINT NOT NULL,
     access_token CHAR(255),
     access_type TINYINT NOT NULL COMMENT '1=short lived, 2=long lived, 3=other type',
     name CHAR(255) COMMENT 'social account display name',
@@ -181,8 +182,8 @@ VALUES
 
 
 
-	
-	
+
+
   
 
 CREATE  TABLE users (
