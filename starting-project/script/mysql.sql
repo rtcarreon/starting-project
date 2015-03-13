@@ -74,8 +74,8 @@ CREATE TABLE SocialAccess_T (
     type_id TINYINT COMMENT '1=FACEBOOK, 2=GOOGLE_PLUS, 3=LINKEDIN, 4=TWITTER, 5=WORDPRESS',
     app_token CHAR(255),
     app_access_secret TINYINT COMMENT '1=short lived, 2=long lived',
-    username CHAR(255),
-    password CHAR(255),
+    username CHAR(255) COMMENT 'for wordpress',
+    password CHAR(255) COMMENT 'for wordpress',
     PRIMARY KEY(user_id, type_id, account_id)
 )
 ENGINE = innodb;

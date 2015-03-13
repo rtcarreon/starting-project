@@ -20,7 +20,7 @@
 
         <div class="form-box" id="login-box">
             <div class="header">Register New Membership</div>
-            <form action="/index.html" method="post">
+            <form action="/home.html" method="post">
                 <div class="body bg-gray">
                     <div class="form-group">
                         <input type="text" name="name" class="form-control" placeholder="Full name"/>
@@ -44,7 +44,7 @@
             </form>
 
             <div class="margin text-center">
-                <span>Register using social networks</span>
+                <span>Try our product using your social network account</span>
                 <br/>
                 <button class="btn bg-light-blue btn-circle"><i class="fa fa-facebook"></i></button>
                 <button class="btn bg-aqua btn-circle"><i class="fa fa-twitter"></i></button>

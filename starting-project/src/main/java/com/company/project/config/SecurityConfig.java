@@ -116,7 +116,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     "/login",
                     "/processLogin",
                     "/resources/**",
-                    "/register").permitAll()
+                    "/register",
+                    "/home").permitAll()
             .antMatchers("/admin/**").access("hasRole('ROLE_ADMIN')")                           
             .antMatchers("/dba/**").access("hasRole('ROLE_ADMIN') or hasRole('ROLE_DBA')")
             .antMatchers("/confidential/**").access("hasRole('SYS_ADMIN')")
